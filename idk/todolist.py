@@ -19,10 +19,4 @@ def Beolvasas():
         if lekerdezes == None:
             lekerdezes = str(input("Milyen elemet keresel? "))
         nonlocal container
-        for i in container:
-
-while kerdes.upper() != "exit":
-    Beiras()
-    if kerdes == "exit":
-        break
-    for 
+        #for i in container:
