@@ -33,25 +33,36 @@ def monitor_and_click(target_window_title, x_offset=10, y_offset=10, check_inter
     :param stop_event: Threading Event object to gracefully stop the loop
     """
     print(f"Monitoring for window: '{target_window_title}'...")
+    window_brought_to_foreground = False 
 
-    while not stop_event.is_set():  # Check the stop_event to allow graceful exit
-        # Look for the target window
+    while not stop_event.is_set():  
+        
         windows = gw.getWindowsWithTitle(target_window_title)
         if windows:
-            window = windows[0]  # Take the first matching window
-            bring_window_to_foreground(target_window_title)  # Ensure the window is in the foreground
+            window = windows[0] 
+            
+            if not window_brought_to_foreground:
+              
+                bring_window_to_foreground(target_window_title)
+                window_brought_to_foreground = True
 
             if is_window_in_foreground(target_window_title):
+                print(f"Window '{window.title}' is in the foreground!")
 
+          
                 x = window.left + x_offset
                 y = window.top + y_offset
 
-                pyautogui.moveTo(x, y, duration=0.5)  # Smooth movement to position
+     
+                print(f"Clicking at ({x}, {y})")
+                pyautogui.moveTo(x, y, duration=0.5)  
                 pyautogui.click()
+            else:
+                print(f"Window '{window.title}' is not in the foreground. Skipping click.")
+        else:
+            window_brought_to_foreground = False  
 
-
-
-        time.sleep(check_interval)  # Wait before checking again
+        time.sleep(check_interval)  
 
 def is_window_in_foreground(window_title):
     """
@@ -70,20 +81,29 @@ def is_window_in_foreground(window_title):
 
 
 if __name__ == "__main__":
-    # Define the target window title
+
     target_window_title = "League of Legends"
 
-    # Offset for clicking inside the window
-    x_offset = 100
-    y_offset = 100
 
-    # Interval to check for the window
-    check_interval = 1  # 1 second
+    x_offset = 450
+    y_offset = 430
 
-    # Create a stop event for the background thread
+
+    check_interval = 1
+
     stop_event = threading.Event()
 
-    # Run the monitor in a background thread
     bot_thread = threading.Thread(target=monitor_and_click, args=(target_window_title, x_offset, y_offset, check_interval, stop_event))
     bot_thread.start()
 
+    print("Bot is running in the background. Press Ctrl+C to stop.")
+
+    try:
+        while bot_thread.is_alive():  
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\nStopping the bot...")
+        stop_event.set() 
+        bot_thread.join() 
+        print("Bot stopped. Exiting program.")
+        sys.exit(0)
